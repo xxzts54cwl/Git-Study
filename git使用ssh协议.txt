@@ -1,0 +1,62 @@
+相关文档：https://segmentfault.com/a/1190000002627706
+
+基本ssh配置
+	1打开ssh目录，一般是隐藏的 cd ~/.ssh 
+	2生成密钥文件,这样就会生成默认名字为id_rsa和id_rsa.pub
+		ssh-keygen -t rsa -C "YOUR_EMAIL@YOUREMAIL.COM"
+		(说明：YOUR_EMAIL@YOUREMAIL.COM换成你自己的邮箱)
+	3打开公钥文件（id_rsa.pub），并把内容复制至代码托管平台上
+		vim ~/.ssh/id_rsa.pub
+	进入 GitCafe -->账户设置-->SSH 公钥管理设置项，点击添加新公钥 按钮，
+	在 Title 文本框中输入任意字符，在 Key 文本框粘贴刚才复制的公钥字符串，按保存按钮完成操作。
+	4测试
+		ssh -T git@gitcafe.com
+	成功应该提示
+		Hi xxxxxx! You've successfully authenticated, but GitCafe does not provide shell access.
+	这样就可以只用ssh协议的URL了,一般默认是https协议的，如图点击SSH即可切换
+	
+多账户ssh配置
+当你在Github或Gitcafe或Coding都有账号时
+	假设已经有一个Gitcafe的密钥了，需要需要添加Github的
+	1生成指定名字的密钥
+		ssh-keygen -t rsa -C "YOUR_EMAIL@YOUREMAIL.COM" -f ~/.ssh/github
+	命名为github（这里叫什么随意，不要重名即可），然后会生成github和github.pub这两个文件
+	2打开公钥文件（id_rsa.pub），并把内容复制至代码托管平台上
+	修改config文件
+		vim ~/.ssh/config
+	添加如下代码
+		Host github.com www.github.com
+		IdentityFile ~/.ssh/github
+	4测试
+		ssh -T git@github.com
+	如果是coding的
+		Host coding.net www.coding.net
+		IdentityFile ~/.ssh/coding
+		
+同一平台下的多账号配置
+	如果有两个Github账号：
+	1也是按照 多账号设置 的方法进行第一第二步
+	 这样你就已经正确的生成好了两个密钥，假设是：
+	 github_a和github_b分别对应的是你的账户aaaaaa和账户bbbbbb
+	2修改config文件
+		vim ~/.ssh/config
+	添加如下代码
+		Host aaaaaa.github.com
+		HostName github.com
+		User git
+		IdentityFile ~/.ssh/github_a
+		Host bbbbbb.github.com
+		HostName github.com
+		User git
+		IdentityFile ~/.ssh/github_b
+	3修改ssh URL
+		例如原来的url是：git@github.com:aaaaaa/xxxxxx.git
+		需要改成：git@aaaaaa.github.com:aaaaaa/xxxxxx.git
+		bbbbbb账号的修改也是如此
+	4最后补充一点（这部分Git熟悉的基本可以略过）：
+	有些童鞋可能在设置这个多账号前已经配置了一个Github的ssh，然后把代码clone下来，
+	配置多账号后，原来的代码就提交不上了。
+	此时你进入 原来clone的代码文件夹下，执行 git remote -v，即可看到远处资源库路径
+		如：git@github.com:aaaaaa/xxxxxx.git
+		执行git remote remove origin删除该远程路径
+		执行git remote add origin git@aaaaaa.github.com:aaaaaa/xxxxxx.git加上正确的远程仓库。
